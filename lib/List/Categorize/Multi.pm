@@ -2,7 +2,7 @@ package List::Categorize::Multi;
 use strict;
 use warnings;
 
-use base 'Exporter';
+use Exporter qw/import/;
 use Carp qw/croak/;
 
 our $VERSION = '0.01';
@@ -11,33 +11,39 @@ our @EXPORT  = qw(categorize);
 sub categorize (&@) {
   my $coderef = shift; # the rest of @_ is the list of elements to categorize
 
-  my %sublists = ();
+  my %tree = ();
 
   for my $element (@_) {
-    # localize $_ and call the coderef; result is a hierarchical list of categories
+    # localize $_ and call the coderef
     local $_       = $element;
-    my @categories = $coderef->();
+    my @categories = $coderef->(); # expected: list of categorizing scalars
 
-    # create intermediate categories and place $element at a leaf
-    my $sublist = \%sublists;
+    # loop over categories, using them to walk through/create the tree
+    my $node = \%tree;
+  CATEGORY:
     while (@categories) {
       my $categ = shift @categories;
+
+      # if an undef is encountered, this element will be ignored
       defined $categ or last;
+
       if (@categories) {
-        $sublist = $sublist->{$categ} ||= {};
-        ref $sublist ne 'ARRAY'
+        # create or retrieve an intermediate node
+        $node = $node->{$categ} ||= {};
+        ref $node ne 'ARRAY'
           or croak "inconsistent use of category '$categ'";
       }
       else {
-        my $ref = ref $sublist->{$categ} || '';
+        # add the element to a leaf
+        my $ref = ref $node->{$categ} || '';
         $ref ne 'HASH'
           or croak "inconsistent use of category '$categ'";
-        push @{$sublist->{$categ}}, $_;
+        push @{$node->{$categ}}, $_;
       }
     }
   }
 
-  return %sublists;
+  return %tree;
 }
 
 1;
@@ -47,10 +53,6 @@ __END__
 =head1 NAME
 
 List::Categorize::Multi - A clone of List-Categorize with support for multiple subcategories.
-
-=head1 VERSION
-
-This documentation describes List::Categorize::Multi version 0.01.
 
 =head1 SYNOPSIS
 
@@ -84,7 +86,6 @@ This documentation describes List::Categorize::Multi version 0.01.
 This module is a clone of L<List::Categorize>, with the same
 application programming interface, but with one additional
 feature : the ability to create multi-level categories.
-
 The result is a tree, labeled by categories,
 where intermediate nodes contain references to subtrees,
 and leaf nodes contain arrayrefs of elements belonging
@@ -92,27 +93,29 @@ to that category.
 
 =head1 EXPORTS
 
-=head2 categorize BLOCK LIST
+=head2 categorize
 
-    my %hash = categorize { $_ > 10 ? 'Big' : 'Little' } @list;
+  my %tree = categorize { ... } @list;
 
 This is the single exported function, and is exported by default.
 
-C<categorize> creates a hash by running BLOCK for each element in LIST,
-Within the block, $_ refers to the current list element.
+The first argument is a coderef or a block, which will be applied to
+each element in C<@list>, while aliasing C<$_> to the current list
+element (C<$_> can even be modified within the block).
+
 The block should return a list of "categories" for the current
 element, i.e a list of scalar values corresponding to the sequence
 of subtrees under which this element will be placed.
 
-If BLOCK always returns one single value, then the module behaves
+If the block always returns one single value, then the module behaves
 exactly like L<List::Categorize>. If it returns an empty list,
-or a list starting with C<undef>,
+or a list containing an C<undef>,
 the corresponding element is not placed in the resulting tree
 (again just like L<List::Categorize>).
 
-The resulting hash contains a key for each category or subcategory.
-At the bottom leve, each key refers to a
-list of the elements that correspond to that sequence of categories.
+The resulting tree contains a key for each top-level category.
+Values are either references to subtrees, or references
+to arrayrefs of elements (depending on the depth of the categorization).
 
 =head1 AUTHOR
 
@@ -132,19 +135,19 @@ You can also look for information at:
 
 =item * RT: CPAN's request tracker
 
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=List-Categorize>
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=List-Categorize-Multi>
 
 =item * AnnoCPAN: Annotated CPAN documentation
 
-L<http://annocpan.org/dist/List-Categorize>
+L<http://annocpan.org/dist/List-Categorize-Multi>
 
 =item * CPAN Ratings
 
-L<http://cpanratings.perl.org/d/List-Categorize>
+L<http://cpanratings.perl.org/d/List-Categorize-Multi>
 
-=item * Search CPAN
+=item * Search MetaCPAN
 
-L<http://search.cpan.org/dist/List-Categorize/>
+L<https://metacpan.org/module/List::Categorize::Multi>
 
 =back
 

@@ -6,4 +6,4 @@ BEGIN {
     use_ok( 'List::Categorize::Multi' );
 }
 
-diag( "Testing List::Categorize $List::Categorize::Multi::VERSION, Perl $], $^X" );
+diag( "Testing List::Categorize::Multi $List::Categorize::Multi::VERSION, Perl $], $^X" );

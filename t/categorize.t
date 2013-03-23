@@ -1,6 +1,6 @@
 #! perl
-#
-# categorize.t
+# 
+# categorize.t. Copied verbatim from List-Categorize, to check compatibility.
 #
 # Tests for List::Categorize::categorize().
 #
