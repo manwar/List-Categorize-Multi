@@ -12,6 +12,7 @@ my $builder = Module::Build->new(
         'Module::Build' => 0,
     },
     build_requires => {
+        'Test::Deep' => 0,
         'Test::More' => 0,
         'Test::NoWarnings' => 0,
     },
