@@ -1,4 +1,5 @@
 package List::Categorize::Multi;
+use strict;
 use Carp                  qw/carp/;
 use List::Categorize 0.04 qw/categorize/;
 use Exporter qw/import/;
